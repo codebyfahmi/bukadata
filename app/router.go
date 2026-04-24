@@ -46,6 +46,8 @@ func routes(svc *service.Service) http.Handler {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteJSON(w, http.StatusOK, map[string]any{"status": "ok"})
 	})
+	mux.HandleFunc("/v1/extension/auth/login", svc.HandleLogin)
+	mux.HandleFunc("/v1/extension/auth/refresh", svc.HandleAuthRefresh)
 	mux.Handle("/v1/extension/ingest/captures/batch", svc.Authenticated(http.HandlerFunc(svc.HandleIngestBatch)))
 	mux.Handle("/v1/extension/dashboard/shop", svc.Authenticated(http.HandlerFunc(svc.HandleGetShopDashboard)))
 	mux.Handle("/v1/extension/analytics/refresh", svc.Authenticated(http.HandlerFunc(svc.HandleRefreshAnalytics)))

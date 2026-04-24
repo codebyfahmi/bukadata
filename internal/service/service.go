@@ -66,6 +66,63 @@ func (s *Service) Authenticated(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Service) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		httpx.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method not allowed")
+		return
+	}
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := httpx.DecodeJSON(r, &req); err != nil {
+		httpx.WriteError(w, http.StatusBadRequest, "invalid_json", err.Error())
+		return
+	}
+	if req.Email == "" || req.Password == "" {
+		httpx.WriteError(w, http.StatusBadRequest, "missing_fields", "email and password are required")
+		return
+	}
+	token, err := s.authClient.Login(r.Context(), req.Email, req.Password)
+	if err != nil {
+		httpx.WriteError(w, http.StatusUnauthorized, "invalid_credentials", "email atau password salah")
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
+		"expires_in":    token.ExpiresIn,
+	})
+}
+
+func (s *Service) HandleAuthRefresh(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		httpx.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method not allowed")
+		return
+	}
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+	if err := httpx.DecodeJSON(r, &req); err != nil {
+		httpx.WriteError(w, http.StatusBadRequest, "invalid_json", err.Error())
+		return
+	}
+	if req.RefreshToken == "" {
+		httpx.WriteError(w, http.StatusBadRequest, "missing_fields", "refresh_token is required")
+		return
+	}
+	token, err := s.authClient.RefreshToken(r.Context(), req.RefreshToken)
+	if err != nil {
+		httpx.WriteError(w, http.StatusUnauthorized, "invalid_refresh_token", "refresh token tidak valid atau sudah kedaluwarsa")
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, map[string]any{
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
+		"expires_in":    token.ExpiresIn,
+	})
+}
+
 func (s *Service) HandleIngestBatch(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		httpx.WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method not allowed")

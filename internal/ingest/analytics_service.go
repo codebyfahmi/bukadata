@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"bukadata/internal/analytics"
+	"bukadata/internal/httpx"
 	"bukadata/internal/repository"
-	"bukadata/internal/service"
 )
 
 type AnalyticsService struct {
@@ -23,7 +23,7 @@ func (s *AnalyticsService) RecomputeShop(ctx context.Context, tx *sql.Tx, worksp
 	shopID, err := s.repo.FindShopID(ctx, tx, workspaceID, marketplace, shopKey)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return service.NewError(http.StatusNotFound, "shop_not_found", "shop not found")
+			return httpx.NewError(http.StatusNotFound, "shop_not_found", "shop not found")
 		}
 		return err
 	}

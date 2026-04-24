@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"bukadata/internal/analytics"
+	"bukadata/internal/httpx"
 	"bukadata/internal/model"
 	"bukadata/internal/repository"
-	"bukadata/internal/service"
 )
 
 type AnalyticsWriter interface {
@@ -39,13 +39,13 @@ func New(repo *repository.Store, storage RawPayloadStorage, analytics AnalyticsW
 
 func (s *Service) Run(ctx context.Context, tx *sql.Tx, workspace repository.Workspace, req model.IngestBatchRequest, jobID string) (*model.IngestBatchResponse, error) {
 	if req.Marketplace == "" {
-		return nil, service.NewError(http.StatusBadRequest, "missing_marketplace", "marketplace is required")
+		return nil, httpx.NewError(http.StatusBadRequest, "missing_marketplace", "marketplace is required")
 	}
 	if !isSupportedMarketplace(req.Marketplace) {
-		return nil, service.NewError(http.StatusBadRequest, "invalid_marketplace", "marketplace is not supported")
+		return nil, httpx.NewError(http.StatusBadRequest, "invalid_marketplace", "marketplace is not supported")
 	}
 	if len(req.Items) == 0 {
-		return nil, service.NewError(http.StatusBadRequest, "missing_items", "items must not be empty")
+		return nil, httpx.NewError(http.StatusBadRequest, "missing_items", "items must not be empty")
 	}
 
 	affectedShops := map[string]struct{}{}
@@ -55,7 +55,7 @@ func (s *Service) Run(ctx context.Context, tx *sql.Tx, workspace repository.Work
 			return nil, err
 		}
 		if !isSupportedMarketplace(capture.Marketplace) {
-			return nil, service.NewError(http.StatusBadRequest, "invalid_marketplace", "marketplace is not supported")
+			return nil, httpx.NewError(http.StatusBadRequest, "invalid_marketplace", "marketplace is not supported")
 		}
 		if _, err := s.repo.EnsureShop(ctx, tx, workspace.ID, capture); err != nil {
 			return nil, err
@@ -126,10 +126,10 @@ func normalizeCapture(defaultMarketplace string, capture model.ExtensionCapture)
 		capture.PageContext.ShopKey = capture.ShopKey
 	}
 	if capture.Marketplace == "" || capture.ShopKey == "" || capture.PageContext.PageURL == "" {
-		return capture, service.NewError(http.StatusBadRequest, "invalid_capture", "each capture must include capturedAt, marketplace, shopKey, and pageContext.pageUrl")
+		return capture, httpx.NewError(http.StatusBadRequest, "invalid_capture", "each capture must include capturedAt, marketplace, shopKey, and pageContext.pageUrl")
 	}
 	if capture.RawCapture.URL == "" || capture.ParsedSummary.EntityType == "" && capture.RawCapture.EntityType == "" {
-		return capture, service.NewError(http.StatusBadRequest, "invalid_capture", "rawCapture and parsedSummary are required")
+		return capture, httpx.NewError(http.StatusBadRequest, "invalid_capture", "rawCapture and parsedSummary are required")
 	}
 	return capture, nil
 }

@@ -5,6 +5,18 @@ import (
 	"net/http"
 )
 
+type Error struct {
+	Status  int
+	Code    string
+	Message string
+}
+
+func (e *Error) Error() string { return e.Message }
+
+func NewError(status int, code, message string) error {
+	return &Error{Status: status, Code: code, Message: message}
+}
+
 type errorEnvelope struct {
 	Error apiError `json:"error"`
 }

@@ -12,20 +12,12 @@ type contextKey string
 
 const principalContextKey contextKey = "principal"
 
-type Error struct {
-	Status  int
-	Code    string
-	Message string
-}
-
-func (e *Error) Error() string { return e.Message }
-
 func NewError(status int, code, message string) error {
-	return &Error{Status: status, Code: code, Message: message}
+	return httpx.NewError(status, code, message)
 }
 
 func WriteServiceError(w http.ResponseWriter, err error) {
-	var svcErr *Error
+	var svcErr *httpx.Error
 	if errors.As(err, &svcErr) {
 		httpx.WriteError(w, svcErr.Status, svcErr.Code, svcErr.Message)
 		return

@@ -30,7 +30,11 @@ func main() {
 	}
 	log.Println("database connected:", cfg.DatabaseURL[:strings.Index(cfg.DatabaseURL, "@")+1]+"***")
 
-	addr := ":8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := ":" + port
 	log.Println("server listening on http://localhost" + addr)
 	if err := http.ListenAndServe(addr, app.New()); err != nil {
 		log.Fatalf("server error: %v", err)

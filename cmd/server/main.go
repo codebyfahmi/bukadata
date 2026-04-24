@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"bukadata/internal/app"
+	"bukadata/app"
 	"bukadata/internal/config"
 
 	_ "github.com/jackc/pgx/v5/stdlib"

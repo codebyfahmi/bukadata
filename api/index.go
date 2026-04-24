@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"bukadata/internal/app"
+	"bukadata/app"
 )
 
 var h = app.New()
